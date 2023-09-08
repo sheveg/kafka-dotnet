@@ -51,7 +51,7 @@ jobs:
       - name: Prepare variables for KafkaProducer
         if: steps.filter.outputs.kafkaproducer == 'true'
         run: |
-          projects=${{ fromJson(env.PROJECT_NAMES) }}
+          projects=$(mapfile -t projects < <( jq -r '.[]' <<<"$projectsJson")
           projects+=('KafkaProducer')
           projectsJson=$(jq -c -n '$ARGS.positional' --args "${projects[@]}")
           echo "PROJECT_NAMES=$projectsJson" >> $GITHUB_ENV
@@ -59,7 +59,7 @@ jobs:
       - name: Prepare variables for KafkaConsumer
         if: steps.filter.outputs.kafkaconsumer == 'true'
         run: |
-          projects=${{ fromJson(env.PROJECT_NAMES) }}
+          projects=$(mapfile -t projects < <( jq -r '.[]' <<<"$projectsJson")
           projects+=('KafkaConsumer')
           projectsJson=$(jq -c -n '$ARGS.positional' --args "${projects[@]}")
           echo "PROJECT_NAMES=$projectsJson" >> $GITHUB_ENV
