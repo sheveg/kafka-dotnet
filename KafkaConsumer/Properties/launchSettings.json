@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "kafka-consumer": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ConnectionStrings__KafkaBootstrapUrl": "localhost:9092"
+      }
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

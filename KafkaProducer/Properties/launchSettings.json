@@ -1,0 +1,17 @@
+{
+  "profiles": {
+    "kafka-producer": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Kafka__BootstrapUrl": "test",
+        "Kafka__Topic": "test"
+      }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "environmentVariables": {
+        "ConnectionStrings__KafkaBootstrapUrl": "test"
+      }
+    }
+  }
+}
