@@ -1,49 +1,87 @@
-name: Build and publish a Docker image
+name: Docker
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
 on:
   push:
-    branches:
-      - '*'
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+    branches: [ "main" ]
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
   pull_request:
-    branches:
-      - '*'
+    branches: [ "main" ]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+
+
 jobs:
   build:
-    name: Build & push docker image
+
     runs-on: ubuntu-latest
-    env:
-      IMG_NAME: ${{ github.repository }}
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Debug
-        run: |
-          echo "github.ref -> {{ github.ref }}"
- 
-      - name: Docker metadata
-        id: metadata
-        uses: docker/metadata-action@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
         with:
-          images: ${{ env.IMG_NAME }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value={{sha}},enable=${{ github.ref_type != 'tag' }}
+           filters: |
+              kafkaproducer:
+                - 'KafkaProducer/**'
+              kafkaconsumer:
+                - 'KafkaConsumer/**'
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1
-        if: ${{ github.ref_type == 'tag' }}
+      - name: Prepare variables for KafkaProducer
+        if: steps.filter.outputs.kafkaproducer == 'true'
+        run: echo "PROJECT_NAME=KafkaProducer" >> $GITHUB_ENV
+
+      - name: Prepare variables for KafkaConsumer
+        if: steps.filter.outputs.kafkaconsumer == 'true'
+        run: echo "PROJECT_NAME=KafkaConsumer" >> $GITHUB_ENV
+
+      # Workaround: https://github.com/docker/build-push-action/issues/461
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN  }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: "${{ env.REGISTRY }}/${${{ env.PROJECT_NAME }},,}"
+
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
       - name: Build and push Docker image
-        uses: docker/build-push-action@v2
+        id: build-and-push
+        uses: docker/build-push-action@v4
         with:
           context: .
-          push: ${{ github.event.base_ref =='refs/heads/main' && github.ref_type == 'tag' && !startsWith(github.ref, 'refs/tags/v0.')}}
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          file: ${{ env.PROJECT_NAME }}/Dockerfile
