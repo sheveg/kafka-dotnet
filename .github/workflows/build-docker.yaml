@@ -76,12 +76,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Prepare variable
-        id: variable
-        run: |
-          lower=${${{ matrix.project }},,}
-          echo $lower
-          echo "project_name=$lower" >> $GITHUB_OUTPUT
+      - id: string
+        uses: ASzc/change-string-case-action@v1
+        with:
+          string:${{ matrix.project }}
 
       # Workaround: https://github.com/docker/build-push-action/issues/461
       - name: Setup Docker buildx
@@ -103,7 +101,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: "${{ env.REGISTRY }}/${{ steps.variable.outputs.project_name }}"
+          images: "${{ env.REGISTRY }}/${{ steps.string.outputs.lowercase }}"
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
