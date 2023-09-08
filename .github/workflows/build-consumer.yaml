@@ -1,4 +1,4 @@
-name: Docker
+name: Build Consumer
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -10,63 +10,28 @@ on:
     branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
+    paths:
+      - 'KafkaConsumer/**'
+      - 'CoreLibrary/**'
+      - '.github/workflows/build-consumer.yaml'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'KafkaConsumer/**'
+      - 'CoreLibrary/**'
+      - '.github/workflows/build-consumer.yaml'
 
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-
+  PROJECT_NAME: KafkaConsumer
 
 jobs:
-  prepare-variables:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      projects: ${{ env.PROJECT_NAMES }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-           filters: |
-              kafkaproducer:
-                - 'KafkaProducer/**'
-                - 'CoreLibrary/**'
-                - '.github/workflows/build-docker.yaml'
-              kafkaconsumer:
-                - 'KafkaConsumer/**'
-                - 'CoreLibrary/**'
-                - '.github/workflows/build-docker.yaml'
-
-      - name: Prepare variables for KafkaProducer
-        if: steps.filter.outputs.kafkaproducer == 'true'
-        run: |
-          projects=${{ fromJson(env.PROJECT_NAMES) }}
-          projects+=('KafkaProducer')
-          projectsJson="[$(echo $projects | sed 's/ /, /g')]"
-          echo "PROJECT_NAMES=$projectsJson" >> $GITHUB_ENV
-
-      - name: Prepare variables for KafkaConsumer
-        if: steps.filter.outputs.kafkaconsumer == 'true'
-        run: |
-          projects=${{ fromJson(env.PROJECT_NAMES) }}
-          projects+=('KafkaConsumer')
-          projectsJson="[$(echo $projects | sed 's/ /, /g')]"
-          echo "PROJECT_NAMES=$projectsJson" >> $GITHUB_ENV
-
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    needs: prepare-variables
-    strategy:
-      matrix: 
-        project: ${{ fromJSON(needs.prepare-variables.outputs.projects) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -74,7 +39,7 @@ jobs:
       - id: string
         uses: ASzc/change-string-case-action@v5
         with:
-          string: ${{ matrix.project }}
+          string: ${{ env.PROJECT_NAME }}
 
       # Workaround: https://github.com/docker/build-push-action/issues/461
       - name: Setup Docker buildx
@@ -96,7 +61,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: "${{ env.REGISTRY }}/${{ steps.string.outputs.lowercase }}"
+          images: "${{ env.REGISTRY }}/${{ github.actor }}/${{ steps.string.outputs.lowercase }}"
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -110,4 +75,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          file: ${{ matrix.project }}/Dockerfile
+          file: ${{ env.PROJECT_NAME }}/Dockerfile
