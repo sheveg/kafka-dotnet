@@ -44,7 +44,7 @@ jobs:
 
       - name: Prepare empty projects array
         run: |
-          projectsJson=jq -c -n '$ARGS.positional' --args "${projects[@]}"
+          projectsJson=$(jq -c -n '$ARGS.positional' --args "${projects[@]}")
           echo "PROJECT_NAMES=$projectsJson" >> $GITHUB_ENV
 
       - name: Prepare variables for KafkaProducer
@@ -52,7 +52,7 @@ jobs:
         run: |
           projects=${{ fromJson(env.PROJECT_NAMES) }}
           projects+=('KafkaProducer')
-          projectsJson=jq -c -n '$ARGS.positional' --args "${projects[@]}"
+          projectsJson=$(jq -c -n '$ARGS.positional' --args "${projects[@]}")
           echo "PROJECT_NAMES=$projectsJson" >> $GITHUB_ENV
 
       - name: Prepare variables for KafkaConsumer
@@ -60,7 +60,7 @@ jobs:
         run: |
           projects=${{ fromJson(env.PROJECT_NAMES) }}
           projects+=('KafkaConsumer')
-          projectsJson=jq -c -n '$ARGS.positional' --args "${projects[@]}"
+          projectsJson=$(jq -c -n '$ARGS.positional' --args "${projects[@]}")
           echo "PROJECT_NAMES=$projectsJson" >> $GITHUB_ENV
 
   build:
