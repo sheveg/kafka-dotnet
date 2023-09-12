@@ -37,9 +37,8 @@ namespace KafkaConsumer
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var randomNumber = Random.Shared.Next(100);
-                _consumer.Consume(1000);
-                _logger.LogInformation("Produced message with number {randomNumber}.", randomNumber);
+                var message = _consumer.Consume(1000);
+                _logger.LogInformation("Consumed message: {message}.", message.Message.Value);
                 await Task.Delay(1000, stoppingToken);
             }
         }
