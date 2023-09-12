@@ -29,7 +29,7 @@ namespace KafkaConsumer
                 })
                 .Build();
 
-            //_consumer.Subscribe(kafkaOptions.Value.Topic);
+            _consumer.Subscribe(kafkaOptions.Value.Topic);
             _logger.LogInformation("Consuming on url {url} and topic {topic}", kafkaOptions.Value.BootstrapUrl, _topic);
         }
 
