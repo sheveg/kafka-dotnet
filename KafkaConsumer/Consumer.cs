@@ -29,7 +29,7 @@ namespace KafkaConsumer
                 })
                 .Build();
 
-            _consumer.Subscribe(kafkaOptions.Value.Topic);
+            //_consumer.Subscribe(kafkaOptions.Value.Topic);
             _logger.LogInformation("Consuming on url {url} and topic {topic}", kafkaOptions.Value.BootstrapUrl, _topic);
         }
 
@@ -38,7 +38,7 @@ namespace KafkaConsumer
             while (!stoppingToken.IsCancellationRequested)
             {
                 var message = _consumer.Consume(1000);
-                _logger.LogInformation("Consumed message: {message}.", message.Message.Value);
+                _logger.LogInformation("Consumed message: {message}.", message?.Message?.Value);
                 await Task.Delay(1000, stoppingToken);
             }
         }
