@@ -32,7 +32,7 @@ namespace KafkaProducer
                 var randomNumber = Random.Shared.Next(100);
                 var message = JsonSerializer.Serialize(new RandomMessage { Id = randomNumber, Message = "Message produced." });
                 _producer.Produce(_topic, new Message<Null, string> { Value = message });
-                _logger.LogInformation("Produced message with number {randomNumber}.", randomNumber);
+                _logger.LogInformation("Produced message: {message}.", message);
                 await Task.Delay(1000, stoppingToken);
             }
         }
