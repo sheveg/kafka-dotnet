@@ -15,14 +15,14 @@ namespace KafkaConsumer
     {
         private readonly ILogger _logger;
         private readonly string _topic;
-        private readonly IConsumer<Null, string> _consumer;
+        private readonly IConsumer<Null, RandomMessage> _consumer;
 
         public Consumer(ILogger<Consumer> logger, IOptions<KafkaOptions> kafkaOptions)
         {
             _logger = logger;
             _topic = kafkaOptions.Value.Topic;
 
-            _consumer = new ConsumerBuilder<Null, string>(
+            _consumer = new ConsumerBuilder<Null, RandomMessage>(
                 new ConsumerConfig { 
                     BootstrapServers = kafkaOptions.Value.BootstrapUrl,
                     GroupId = "foo"
@@ -38,7 +38,7 @@ namespace KafkaConsumer
             while (!stoppingToken.IsCancellationRequested)
             {
                 var message = _consumer.Consume(1000);
-                _logger.LogInformation("Consumed message: {message}.", message?.Message?.Value);
+                _logger.LogInformation("Consumed message: {message} with id {}.", message?.Message?.Value?.Message, message?.Message?.Value?.Id);
                 await Task.Delay(1000, stoppingToken);
             }
         }

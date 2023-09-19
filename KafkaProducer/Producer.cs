@@ -10,14 +10,14 @@ namespace KafkaProducer
     {
         private readonly ILogger _logger;
         private readonly string _topic;
-        private readonly IProducer<Null, string> _producer;
+        private readonly IProducer<Null, RandomMessage> _producer;
 
         public Producer(ILogger<Producer> logger, IOptions<KafkaOptions> kafkaOptions) 
         {
             _logger = logger;
             _topic = kafkaOptions.Value.Topic;
 
-            _producer = new ProducerBuilder<Null, string>(
+            _producer = new ProducerBuilder<Null, RandomMessage>(
                 new ProducerConfig { BootstrapServers = kafkaOptions.Value.BootstrapUrl })
                 .Build();
 
@@ -29,7 +29,7 @@ namespace KafkaProducer
             while (!stoppingToken.IsCancellationRequested)
             {
                 var randomNumber = Random.Shared.Next(100);
-                _producer.Produce(_topic, new Message<Null, string> { Value = $"Random number is {randomNumber}" });
+                _producer.Produce(_topic, new Message<Null, RandomMessage> { Value = new RandomMessage { Id = randomNumber, Message = "Message produced" } });
                 _logger.LogInformation("Produced message with number {randomNumber}.", randomNumber);
                 await Task.Delay(1000, stoppingToken);
             }
