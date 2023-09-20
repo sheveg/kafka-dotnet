@@ -25,7 +25,18 @@ namespace KafkaConsumer
             _consumer = new ConsumerBuilder<Null, string>(
                 new ConsumerConfig { 
                     BootstrapServers = kafkaOptions.Value.BootstrapUrl,
+                    SaslUsername = kafkaOptions.Value.User,
+                    SaslPassword = kafkaOptions.Value.Password,
                     GroupId = "foo"
+                })
+                .SetLogHandler((_, logMessage) => _logger.LogInformation("Kafka log: {Message}", logMessage.Message))
+                .SetErrorHandler((_, error) =>
+                {
+                    if (error.IsFatal)
+                    {
+                        _logger.LogError("Kafka fatal error: {Reason}", error.Reason);
+                    }
+                    _logger.LogWarning("Kafka error: {Reason}", error.Reason);
                 })
                 .Build();
 

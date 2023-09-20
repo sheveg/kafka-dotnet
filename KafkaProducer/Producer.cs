@@ -13,13 +13,27 @@ namespace KafkaProducer
         private readonly string _topic;
         private readonly IProducer<Null, string> _producer;
 
-        public Producer(ILogger<Producer> logger, IOptions<KafkaOptions> kafkaOptions) 
+        public Producer(ILogger<Producer> logger, IOptions<KafkaOptions> kafkaOptions)
         {
             _logger = logger;
             _topic = kafkaOptions.Value.Topic;
 
             _producer = new ProducerBuilder<Null, string>(
-                new ProducerConfig { BootstrapServers = kafkaOptions.Value.BootstrapUrl })
+                new ProducerConfig
+                {
+                    BootstrapServers = kafkaOptions.Value.BootstrapUrl,
+                    SaslUsername = kafkaOptions.Value.User,
+                    SaslPassword = kafkaOptions.Value.Password
+                })
+                .SetLogHandler((_, logMessage) => _logger.LogInformation("Kafka log: {Message}", logMessage.Message))
+                .SetErrorHandler((_, error) =>
+                {
+                    if (error.IsFatal)
+                    {
+                        _logger.LogError("Kafka fatal error: {Reason}", error.Reason);
+                    }
+                    _logger.LogWarning("Kafka error: {Reason}", error.Reason);
+                })
                 .Build();
 
             _logger.LogInformation("Writing on url {url} and topic {topic}", kafkaOptions.Value.BootstrapUrl, _topic);
