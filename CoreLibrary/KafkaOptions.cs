@@ -8,6 +8,7 @@
         public string User { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string SaslMechanism { get; set; } = string.Empty;
+        public string SecurityProtocol { get; set; } = string.Empty;
         public Confluent.Kafka.SaslMechanism SaslMechanismEnum
         {
             get
@@ -20,6 +21,20 @@
                     "SCRAM-SHA-512" => Confluent.Kafka.SaslMechanism.ScramSha512,
                     "OAUTHBEARER" => Confluent.Kafka.SaslMechanism.OAuthBearer,
                     _ => Confluent.Kafka.SaslMechanism.Plain
+                };
+            }
+        }
+        public Confluent.Kafka.SecurityProtocol SecurityProtocolEnum
+        {
+            get
+            {
+                return SecurityProtocol.ToUpper() switch
+                {
+                    "PLAINTEXT" => Confluent.Kafka.SecurityProtocol.Plaintext,
+                    "SSL" => Confluent.Kafka.SecurityProtocol.Ssl,
+                    "SASL_PLAINTEXT" => Confluent.Kafka.SecurityProtocol.SaslPlaintext,
+                    "SASL_SSL" => Confluent.Kafka.SecurityProtocol.SaslSsl,
+                    _ => Confluent.Kafka.SecurityProtocol.Plaintext
                 };
             }
         }

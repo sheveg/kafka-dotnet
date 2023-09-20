@@ -29,6 +29,7 @@ namespace KafkaConsumer
                     SaslUsername = kafkaOptions.Value.User,
                     SaslPassword = kafkaOptions.Value.Password,
                     SaslMechanism = kafkaOptions.Value.SaslMechanismEnum,
+                    SecurityProtocol = kafkaOptions.Value.SecurityProtocolEnum,
                     GroupId = "foo"
                 })
                 .SetLogHandler((_, logMessage) => _logger.LogInformation("Kafka log: {Message}", logMessage.Message))
