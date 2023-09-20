@@ -23,7 +23,8 @@ namespace KafkaProducer
                 {
                     BootstrapServers = kafkaOptions.Value.BootstrapUrl,
                     SaslUsername = kafkaOptions.Value.User,
-                    SaslPassword = kafkaOptions.Value.Password
+                    SaslPassword = kafkaOptions.Value.Password,
+                    SaslMechanism = kafkaOptions.Value.SaslMechanismEnum
                 })
                 .SetLogHandler((_, logMessage) => _logger.LogInformation("Kafka log: {Message}", logMessage.Message))
                 .SetErrorHandler((_, error) =>

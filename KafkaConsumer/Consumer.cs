@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace KafkaConsumer
 {
@@ -27,6 +28,7 @@ namespace KafkaConsumer
                     BootstrapServers = kafkaOptions.Value.BootstrapUrl,
                     SaslUsername = kafkaOptions.Value.User,
                     SaslPassword = kafkaOptions.Value.Password,
+                    SaslMechanism = kafkaOptions.Value.SaslMechanismEnum,
                     GroupId = "foo"
                 })
                 .SetLogHandler((_, logMessage) => _logger.LogInformation("Kafka log: {Message}", logMessage.Message))
